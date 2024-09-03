@@ -39,7 +39,10 @@
         startButton.addEventListener('click', startWebcam);
 
         function scanQRCode() {
-            if (isCapturing) return; // Prevent multiple captures
+            if (isCapturing) {
+                requestAnimationFrame(scanQRCode); // Continue scanning after detection
+                return; // Prevent multiple captures at the same time
+            }
 
             if (videoElement.readyState === videoElement.HAVE_ENOUGH_DATA) {
                 canvasElement.width = videoElement.videoWidth;
@@ -51,9 +54,14 @@
                 const code = jsQR(imageData.data, imageData.width, imageData.height); // QR code detection
 
                 if (code) {
+                    isCapturing = true; // Set capturing to true to prevent immediate re-detection
                     alert(`QR code detected! Data: ${code.data}`); // Show alert with QR code data
                     capturePhoto(); // Capture the photo
-                    isCapturing = true; // Stop further captures
+
+                    // Reset the capturing flag after 3 seconds to allow new detections
+                    setTimeout(() => {
+                        isCapturing = false;
+                    }, 3000);
                 } else {
                     requestAnimationFrame(scanQRCode); // Continue scanning
                 }
